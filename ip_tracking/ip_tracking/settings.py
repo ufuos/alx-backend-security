@@ -48,9 +48,30 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_ip_geolocation.middleware.IpGeolocationMiddleware',
     'ip_tracking.middleware.IPLoggingMiddleware',  # <-- add this line
     'ip_tracking.middleware.IPTrackingMiddleware',
 ]
+IP_GEOLOCATION_SETTINGS = {
+    # default backend uses ipgeolocationapi.com; set BACKEND_API_KEY if you have one
+    'BACKEND': 'django_ip_geolocation.backends.IPGeolocationAPI',
+    'BACKEND_API_KEY': '',          # <-- put your API key if you have one
+    'BACKEND_EXTRA_PARAMS': {},
+    'RESPONSE_HEADER': 'X-IP-Geolocation',
+    'ENABLE_REQUEST_HOOK': True,
+    'ENABLE_RESPONSE_HOOK': True,
+    'ENABLE_COOKIE': False,
+    'FORCE_IP_ADDR': None,
+    'USER_CONSENT_VALIDATOR': None,
+}
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'ipgeo-cache',
+    }
+}
+
+
 
 ROOT_URLCONF = 'ip_tracking.urls'
 
