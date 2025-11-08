@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+     "ratelimit",  
      'ip_tracking',
 ]
 
@@ -68,6 +70,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'ipgeo-cache',
+        "LOCATION": "unique-snowflake",
     }
 }
 
@@ -103,6 +106,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# paths considered sensitive for anomaly detection
+SENSITIVE_PATHS = ["/admin", "/login"]
+
 
 
 # Password validation
@@ -145,3 +151,17 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+from celery.schedules import crontab
+
+CELERY_BROKER_URL = "amqp://localhost"  # RabbitMQ default (adjust if needed)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_BACKEND = None  # or use redis if you want results
+
+# schedule the anomaly detection hourly
+CELERY_BEAT_SCHEDULE = {
+    "ip_anomaly_detection_hourly": {
+        "task": "ip_tracking.tasks.detect_suspicious_ips",
+        "schedule": crontab(minute=0, hour="*"),  # hourly, at minute 0
+    },
+}
